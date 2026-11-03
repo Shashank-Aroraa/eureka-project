@@ -96,4 +96,6 @@ async function api(req,res,url) {
 }
 
 async function handle(req,res){try{const url=new URL(req.url,'http://'+(req.headers.host||'localhost'));if(url.pathname.startsWith('/api/')){await api(req,res,url);return;}const file=PUBLIC.get(url.pathname);if(!file){res.writeHead(404);res.end('Not found');return;}const bytes=await readFile(resolve(ROOT,'public',file)),types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};res.writeHead(200,{'Content-Type':types[extname(file)],'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'"});res.end(bytes);}catch(e){const status=e.status||500;if(status>=500)console.error('Unhandled One-Tap server error:',status);if(!res.headersSent)json(res,status,{error:status>=500?'Something went wrong. Please try again.':e.message});else res.destroy();}}
-http.createServer(handle).listen(PORT,()=>console.log('One-Tap local demo at http://localhost:'+PORT));
+const server=http.createServer(handle);
+if(process.env.NODE_ENV!=='test') server.listen(PORT,()=>console.log('One-Tap local demo at http://localhost:'+PORT));
+export { handle, db, server };
