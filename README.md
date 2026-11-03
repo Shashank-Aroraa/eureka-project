@@ -7,7 +7,7 @@ One-Tap is a voice-first demo for older adults to prepare everyday service reque
 Requirements: Node.js 24 or newer. The app uses Node's built-in SQLite module and has no third-party runtime dependencies.
 
 ```sh
-npm start
+node server.js
 ```
 
 Open http://localhost:3000. SQLite creates `data/one-tap.sqlite` and the tables on first launch. Set `PORT` and `DATABASE_PATH` in your shell to change the port or database file. The `.env.example` file lists optional integration names; this app does not load a `.env` file and does not use those integration variables.
@@ -36,4 +36,4 @@ This repository was empty before the demo was added. It has no pre-existing fram
 
 ## Tests
 
-Run `npm test` with Node.js 24 or newer. Tests exercise local registration/session behavior, request confirmation, permission enforcement, invitation consent, family approval, and account isolation.
+Run `node --test` with Node.js 24 or newer. Tests exercise local registration/session behavior, request confirmation, permission enforcement, invitation consent, family approval, and account isolation.
