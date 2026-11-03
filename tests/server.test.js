@@ -32,6 +32,10 @@ after(async()=>{db?.close();if(temp)await rm(temp,{recursive:true,force:true});}
 test('authentication, confirmation, consent, permissions, approvals, and data isolation',async()=>{
  const profile=await call('/api/me','GET',undefined,adult.session);
  assert.equal(profile.status,200);assert.equal(profile.json.user.email,adult.email);
+ const login=await call('/api/auth/login','POST',{email:adult.email,password:'a long local test password'});
+ assert.equal(login.status,200);assert.ok(login.headers['Set-Cookie'].includes('HttpOnly'));
+ const wrongPassword=await call('/api/auth/login','POST',{email:adult.email,password:'incorrect password'});
+ assert.equal(wrongPassword.status,401);
  const interpreted=await call('/api/interpret','POST',{text:'Please get milk and vegetables'},adult.session);
  assert.equal(interpreted.status,200);assert.equal(interpreted.json.category,'groceries');assert.equal(interpreted.json.demo,true);
  const unconfirmed=await call('/api/requests','POST',{category:'groceries',details:'Please get milk and vegetables'},adult.session);
@@ -52,6 +56,14 @@ test('authentication, confirmation, consent, permissions, approvals, and data is
  assert.equal(visible.status,200);assert.equal(visible.json.requests.length,1);
  const approved=await call('/api/requests/'+created.json.request.id+'/approve','POST',{outcome:'approved',note:'Reviewed'},family.session);
  assert.equal(approved.status,200);assert.equal(approved.json.request.status,'ready_for_provider');
+ const clarifyRequest=await call('/api/requests','POST',{confirmed:true,category:'groceries',details:'Please get bread'},adult.session);
+ assert.equal(clarifyRequest.status,201);
+ const clarification=await call('/api/requests/'+clarifyRequest.json.request.id+'/approve','POST',{outcome:'clarification',note:'Which kind?'},family.session);
+ assert.equal(clarification.status,200);assert.equal(clarification.json.request.status,'needs_clarification');
+ const declineRequest=await call('/api/requests','POST',{confirmed:true,category:'groceries',details:'Please get eggs'},adult.session);
+ assert.equal(declineRequest.status,201);
+ const declined=await call('/api/requests/'+declineRequest.json.request.id+'/approve','POST',{outcome:'declined'},family.session);
+ assert.equal(declined.status,200);assert.equal(declined.json.request.status,'declined');
  const cancelled=await call('/api/requests/'+created.json.request.id+'/cancel','POST',{},adult.session);
  assert.equal(cancelled.status,200);assert.equal(cancelled.json.request.status,'cancelled');
  const permission=await call('/api/permissions','PUT',{category:'food',state:'disabled'},adult.session);
