@@ -10,7 +10,7 @@ let handle,db,temp,adult,family,outsider;
 async function call(path,method='GET',body,session){
  const req=Readable.from(body===undefined?[]:[JSON.stringify(body)]);
  Object.assign(req,{url:path,method,headers:{cookie:session||'',host:'one-tap.test','x-onetap':method==='GET'?'':'1'},socket:{remoteAddress:'test-suite'}});
- const res={headers:{},headersSent:false,statusCode:200,writeHead(status,headers){this.statusCode=status;this.headers=headers||{};this.headersSent=true;},end(data){this.body=data===undefined?'':Buffer.isBuffer(data)?data.toString():String(data);}};
+ const res={headers:{},headersSent:false,statusCode:200,setHeader(name,value){this.headers[name]=value;},writeHead(status,headers){this.statusCode=status;Object.assign(this.headers,headers||{});this.headersSent=true;},end(data){this.body=data===undefined?'':Buffer.isBuffer(data)?data.toString():String(data);}};
  await handle(req,res);
  let json={};try{json=JSON.parse(res.body);}catch{}
  return {status:res.statusCode,headers:res.headers,json};
